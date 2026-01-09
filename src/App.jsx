@@ -71,7 +71,7 @@ export default function App() {
         {view === 'discharges' && <Discharges />}
       </main>
       <footer className="text-center py-2 text-[10px] text-slate-400 font-mono bg-slate-100">
-        v7.0.0
+        v8.0.0
       </footer>
     </div>
   );

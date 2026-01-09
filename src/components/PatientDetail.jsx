@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { db, auth } from '../firebase';
 import { doc, updateDoc, arrayUnion, onSnapshot } from 'firebase/firestore';
 import { calculateAge, calculateDays, getLocalISODate } from '../utils';
-import { ArrowLeft, Save, Edit, CheckSquare, LogOut } from 'lucide-react';
+import { ArrowLeft, Save, Edit, CheckSquare, LogOut, Trash2 } from 'lucide-react';
 import PatientFormModal from './PatientFormModal';
 
 const NoteInput = ({ label, k, form, setForm, ph = "..." }) => (
@@ -53,6 +53,13 @@ export default function PatientDetail({ patient: initialP, onClose }) {
      setNote({});
   };
 
+  const deleteNote = async (nId) => {
+      if(!confirm("¿Eliminar esta nota permanentemente?")) return;
+      const updatedNotes = p.notes.filter(n => n.id !== nId);
+      await updateDoc(doc(db, "patients", p.id), { notes: updatedNotes });
+      alert("Nota eliminada");
+  };
+
   const startEditNote = (n) => {
       setNoteType(n.type); setNote(n.content); setEditingNoteId(n.id);
       document.getElementById('note-creator').scrollIntoView({ behavior: 'smooth' });
@@ -69,7 +76,6 @@ export default function PatientDetail({ patient: initialP, onClose }) {
       setNewTask('');
   };
 
-  // COPIADO INTELIGENTE: SIN * Y SIN CAMPOS VACIOS
   const copyVisita = (n) => {
       let t = `EVOLUCIÓN UROLOGÍA\n`;
       if(n.subj) t += `S: ${n.subj}\n`;
@@ -91,6 +97,7 @@ export default function PatientDetail({ patient: initialP, onClose }) {
       keys.forEach(k => { if(n[k]) labs.push(`${labels[k]}:${n[k]}`); });
       if(labs.length) t += `LABS: ${labs.join(' ')}\n`;
 
+      if(n.exploracion) t += `EF: ${n.exploracion}\n`;
       if(n.plan) t += `PLAN: ${n.plan}`;
       
       navigator.clipboard.writeText(t); 
@@ -187,6 +194,7 @@ export default function PatientDetail({ patient: initialP, onClose }) {
                                <NoteInput label="Na" k="na" form={note} setForm={setNote}/> <NoteInput label="K" k="k" form={note} setForm={setNote}/> <NoteInput label="Cl" k="cl" form={note} setForm={setNote}/> 
                            </div>
                        </div>
+                       <textarea className="w-full p-2 border rounded text-xs" rows="3" placeholder="Exploración Física..." value={note.exploracion||''} onChange={e=>setNote({...note, exploracion:e.target.value})}/>
                        <textarea className="w-full p-2 border rounded text-xs" rows="3" placeholder="Análisis y Plan..." value={note.plan||''} onChange={e=>setNote({...note, plan:e.target.value})}/>
                    </>}
 
@@ -230,9 +238,10 @@ export default function PatientDetail({ patient: initialP, onClose }) {
                    <div key={n.id} className={`bg-white p-3 rounded-xl shadow-sm border ${editingNoteId === n.id ? 'border-orange-400 bg-orange-50' : 'border-slate-200'}`}>
                        <div className="flex justify-between items-center mb-2 border-b pb-1">
                            <span className="bg-slate-100 px-2 py-0.5 rounded text-[10px] font-black uppercase text-slate-500">{n.type}</span>
-                           <div className="flex items-center gap-3">
+                           <div className="flex items-center gap-2">
                                <span className="text-[10px] text-slate-400">{n.date.slice(0,10)} • {n.author}</span>
-                               <button onClick={()=>startEditNote(n)} className="text-blue-400 hover:text-blue-600 p-1 bg-blue-50 rounded"><Edit size={14}/></button>
+                               <button onClick={()=>startEditNote(n)} className="text-blue-400 hover:text-blue-600 p-1 hover:bg-blue-50 rounded"><Edit size={14}/></button>
+                               <button onClick={()=>deleteNote(n.id)} className="text-red-400 hover:text-red-600 p-1 hover:bg-red-50 rounded"><Trash2 size={14}/></button>
                            </div>
                        </div>
                        <div className="text-sm text-slate-700">
@@ -240,6 +249,7 @@ export default function PatientDetail({ patient: initialP, onClose }) {
                                <p className="mb-1"><span className="font-bold">S:</span> {n.content.subj}</p>
                                <div className="bg-slate-50 p-2 rounded font-mono text-xs text-blue-800 mb-1">TA:{n.content.ta} FC:{n.content.fc} T:{n.content.temp} | GU:{n.content.gu} | D:{n.content.dren}</div>
                                <div className="mb-1 text-[10px] text-slate-500">Labs: Hb:{n.content.hb} Leu:{n.content.leu} Plt:{n.content.plt} Cr:{n.content.cr} K:{n.content.k}</div>
+                               {n.content.exploracion && <p className="mb-1 text-slate-600 italic">Ex: {n.content.exploracion}</p>}
                                <p><span className="font-bold">P:</span> {n.content.plan}</p>
                                <button onClick={()=>copyVisita(n.content)} className="mt-2 text-[10px] bg-green-50 text-green-600 px-2 py-1 rounded font-bold border border-green-100">COPIAR NOTA</button>
                            </div>}

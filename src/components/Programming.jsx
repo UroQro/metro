@@ -63,7 +63,10 @@ export default function Programming() {
                    <span className="text-[10px] font-bold text-slate-400">{urgent ? 'URGENCIA' : `${p.scheduledDate} ${p.surgeryTime||'00:00'}`}</span>
                 </div>
                 <p className="font-black uppercase text-sm">{p.surgery || p.diagnosis}</p>
-                <p className="text-xs">{p.name} ({calculateAge(p.dob)}a)</p>
+                <div className="flex items-center gap-2 text-xs">
+                    <span>{p.name} ({calculateAge(p.dob)}a)</span>
+                    <span className="text-slate-400 font-bold">Exp: {p.fileNumber||'000000'}</span>
+                </div>
             </div>
             <div className="flex flex-col gap-1 items-end">
                 <button onClick={(e)=>toggleSx(e,p)} className={`p-2 rounded-full ${p.surgeryPerformed ? 'text-green-500 bg-green-50' : 'text-slate-300 bg-slate-50'}`}><CheckCircle/></button>
