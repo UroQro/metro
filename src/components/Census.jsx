@@ -28,12 +28,34 @@ export default function Census() {
   };
 
   const handleExport = () => {
-      const data = patients.map(p => [
-          getLocalISODate(), p.bedNumber, p.service, p.name, p.reentry?'SI':'NO', 
-          calculateDays(p.admissionDate), p.diagnosis, p.surgery||'N/A', 
-          p.antecedents?.other||'', p.meds||'', p.lastLabs||'', p.lastUro||''
-      ]);
-      downloadCSV(data, ["Fecha","Cama","Servicio","Nombre","Reingreso","Dias","Dx","Cx","Ant","Meds","Labs","Uro"], "Censo.csv");
+      if (patients.length === 0) return alert("No hay pacientes para exportar");
+      
+      const data = patients.map(p => {
+          // Parse last labs nicely if they exist
+          let labsText = '';
+          if(p.lastLabs) {
+              try {
+                  const l = JSON.parse(p.lastLabs);
+                  labsText = `Hb:${l.hb} Leu:${l.leu} Cr:${l.cr}`;
+              } catch(e) {}
+          }
+
+          return [
+              getLocalISODate(), 
+              p.bedNumber || '-', 
+              p.service || '-', 
+              p.name, 
+              p.reentry ? 'SI' : 'NO', 
+              calculateDays(p.admissionDate), 
+              p.diagnosis || '', 
+              p.surgery || 'N/A', 
+              p.antecedents?.other || '', 
+              p.meds || '', 
+              labsText, 
+              p.lastUro || ''
+          ];
+      });
+      downloadCSV(data, ["Fecha","Cama","Servicio","Nombre","Reingreso","Dias","Dx","Cx","Ant","Meds","Labs","Uro"], "Censo_Uro.csv");
   };
 
   const quickAction = async (e, id, field, value) => {
@@ -60,7 +82,7 @@ export default function Census() {
               <Search size={18} className="text-slate-400"/>
               <input className="w-full bg-transparent p-2 outline-none text-sm" placeholder="Buscar paciente..." value={search} onChange={e=>setSearch(e.target.value)} />
           </div>
-          <button onClick={handleExport} className="bg-emerald-600 text-white p-2.5 rounded-lg"><Download size={20}/></button>
+          <button onClick={handleExport} className="bg-emerald-600 text-white p-2.5 rounded-lg active:scale-95 transition"><Download size={20}/></button>
       </div>
 
       <div className="space-y-3">

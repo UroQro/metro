@@ -18,16 +18,26 @@ export const getLocalISODate = () => {
 };
 
 export const downloadCSV = (data, headers, filename) => {
-  const clean = (t) => String(t || '').normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/,/g, " ");
-  const csv = [
-      headers.join(","),
-      ...data.map(row => row.map(clean).join(","))
-  ].join("\n");
-  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-  const link = document.createElement("a");
-  link.href = URL.createObjectURL(blob);
-  link.download = filename;
-  link.click();
+  try {
+    const clean = (t) => String(t || '').normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/,/g, " ").replace(/\n/g, " ");
+    const csvContent = [
+        headers.join(","),
+        ...data.map(row => row.map(cell => `"${clean(cell)}"`).join(","))
+    ].join("\n");
+    
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    link.setAttribute("href", url);
+    link.setAttribute("download", filename);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  } catch (e) {
+    console.error("Error exportando CSV", e);
+    alert("Error al generar CSV: " + e.message);
+  }
 };
 
-export const SERVICES = ["URO", "MI", "CG", "TYO", "GYO", "PEDIA", "MAXILO", "GERIA", "PALIA", "UCIQX", "UCIA", "OTROS"];
+export const SERVICES = ["URO", "CARDIO", "MI", "CG", "TYO", "GYO", "PEDIA", "MAXILO", "GERIA", "PALIA", "UCIQX", "UCIA", "OTROS"];

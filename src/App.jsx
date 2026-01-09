@@ -22,12 +22,10 @@ export default function App() {
           if (!snap.exists() || snap.data().date !== today) {
               const batch = writeBatch(db);
               
-              // Reset Checkboxes
               const qCheck = query(collection(db, 'patients'), where('dailyCheck', '==', true));
               const snapCheck = await getDocs(qCheck);
               snapCheck.docs.forEach(d => batch.update(d.ref, { dailyCheck: false }));
               
-              // Move completed ambulatory surgeries to discharged
               const qAmb = query(collection(db, 'patients'), where('bedNumber', '==', 'AMB'), where('surgeryPerformed', '==', true));
               const snapAmb = await getDocs(qAmb);
               snapAmb.docs.forEach(d => batch.update(d.ref, { status: 'discharged', dischargeDate: today }));
