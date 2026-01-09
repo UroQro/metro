@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { db } from '../firebase';
-import { collection, onSnapshot, query, where, updateDoc, doc } from 'firebase/firestore';
+import { collection, onSnapshot, query, where, updateDoc, doc, getDocs } from 'firebase/firestore';
 import { calculateAge, calculateDays, downloadCSV, getLocalISODate } from '../utils';
-import { Search, Plus, Download, AlertCircle, CheckSquare, Square, LogOut, CalendarClock, Briefcase } from 'lucide-react';
+import { Search, Plus, Download, AlertCircle, CheckSquare, Square, LogOut, CalendarClock, Briefcase, History } from 'lucide-react';
 import PatientFormModal from './PatientFormModal';
 import PatientDetail from './PatientDetail';
 
@@ -22,38 +22,61 @@ export default function Census() {
 
   const getCardStyle = (p) => {
       if (p.preDischarge) return "bg-purple-100 border-l-4 border-purple-600";
-      const isUro = p.service === 'URO';
+      const isUro = p.service === 'HOSP';
       if (p.dailyCheck) return isUro ? "bg-blue-50 border-l-4 border-blue-600" : "bg-green-50 border-l-4 border-green-600";
       return isUro ? "bg-red-50 border-l-4 border-red-500" : "bg-orange-50 border-l-4 border-orange-500";
   };
 
+  const generateRows = (data) => data.map(p => {
+      let labsText = '';
+      if(p.lastLabs) {
+          try {
+              const l = JSON.parse(p.lastLabs);
+              labsText = `Hb:${l.hb} Leu:${l.leu} Cr:${l.cr}`;
+          } catch(e) {}
+      }
+      return [
+          p.admissionDate || '',
+          p.bedNumber || '-', 
+          p.service || '-', 
+          p.category || '-',
+          p.name, 
+          p.reentry ? 'SI' : 'NO', 
+          calculateDays(p.admissionDate), 
+          p.diagnosis || '', 
+          p.surgery || 'N/A', 
+          p.antecedents?.other || '', 
+          p.meds || '', 
+          labsText, 
+          p.lastUro || ''
+      ];
+  });
+
+  const headers = ["Fecha Ingreso","Cama","Servicio","Categoria","Nombre","Reingreso","Dias","Dx","Cx","Ant","Meds","Labs","Uro"];
+
   const handleExport = () => {
       if (patients.length === 0) return alert("No hay pacientes para exportar");
+      downloadCSV(generateRows(patients), headers, "Censo_Actual.csv");
+  };
+
+  const handleHistoricalExport = async () => {
+      const dateStr = prompt("Ingrese la fecha del censo a reconstruir (YYYY-MM-DD):");
+      if (!dateStr) return;
       
-      const data = patients.map(p => {
-          let labsText = '';
-          if(p.lastLabs) {
-              try {
-                  const l = JSON.parse(p.lastLabs);
-                  labsText = `Hb:${l.hb} Leu:${l.leu} Cr:${l.cr}`;
-              } catch(e) {}
-          }
-          return [
-              getLocalISODate(), 
-              p.bedNumber || '-', 
-              p.service || '-', 
-              p.name, 
-              p.reentry ? 'SI' : 'NO', 
-              calculateDays(p.admissionDate), 
-              p.diagnosis || '', 
-              p.surgery || 'N/A', 
-              p.antecedents?.other || '', 
-              p.meds || '', 
-              labsText, 
-              p.lastUro || ''
-          ];
+      // Get all patients ever
+      const snap = await getDocs(collection(db, "patients"));
+      const allP = snap.docs.map(d => d.data());
+      
+      // Filter logic: In census if Admission <= Date AND (Active OR Discharge >= Date)
+      const historical = allP.filter(p => {
+          if (!p.admissionDate) return false;
+          const entered = p.admissionDate <= dateStr;
+          const stillHere = p.status === 'active' || (p.status === 'discharged' && p.dischargeDate >= dateStr);
+          return entered && stillHere;
       });
-      downloadCSV(data, ["Fecha","Cama","Servicio","Nombre","Reingreso","Dias","Dx","Cx","Ant","Meds","Labs","Uro"], "Censo_Uro.csv");
+
+      if (historical.length === 0) return alert("No se encontraron pacientes para esa fecha.");
+      downloadCSV(generateRows(historical), headers, `Censo_${dateStr}.csv`);
   };
 
   const quickAction = async (e, id, field, value) => {
@@ -80,7 +103,8 @@ export default function Census() {
               <Search size={18} className="text-slate-400"/>
               <input className="w-full bg-transparent p-2 outline-none text-sm" placeholder="Buscar paciente..." value={search} onChange={e=>setSearch(e.target.value)} />
           </div>
-          <button onClick={handleExport} className="bg-emerald-600 text-white p-2.5 rounded-lg active:scale-95 transition"><Download size={20}/></button>
+          <button onClick={handleHistoricalExport} className="bg-slate-200 text-slate-600 p-2.5 rounded-lg active:scale-95 transition" title="Descargar Censo Histórico"><History size={20}/></button>
+          <button onClick={handleExport} className="bg-emerald-600 text-white p-2.5 rounded-lg active:scale-95 transition" title="Descargar Censo Actual"><Download size={20}/></button>
       </div>
 
       <div className="space-y-3">
@@ -91,6 +115,7 @@ export default function Census() {
                           <div className="flex items-center gap-2 mb-1">
                              <span className={`text-[10px] font-black px-2 py-0.5 rounded shadow-sm ${p.bedNumber==='AMB'?'bg-yellow-400 text-black':'bg-slate-800 text-white'}`}>{p.bedNumber}</span>
                              <span className="text-[10px] font-bold text-slate-500">{p.service}</span>
+                             {p.category && <span className="text-[9px] bg-slate-100 px-1 rounded uppercase font-bold text-slate-400">{p.category}</span>}
                              {p.reentry && <div className="bg-black text-white text-[9px] font-bold px-1 rounded">REINGRESO</div>}
                           </div>
                           <h3 className="font-black text-lg leading-tight uppercase text-slate-800 flex items-center gap-2">

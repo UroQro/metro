@@ -37,7 +37,7 @@ export default function Login() {
             {isReg && (
                 <>
                     <input className={inputClass} placeholder="Nombre Completo" value={name} onChange={e=>setName(e.target.value)} required />
-                    <input className={inputClass} type="password" placeholder="Clave Urotec" value={key} onChange={e=>setKey(e.target.value)} required />
+                    <input className={inputClass} type="password" placeholder="Clave Maestra" value={key} onChange={e=>setKey(e.target.value)} required />
                 </>
             )}
             <input className={inputClass} type="email" placeholder="Correo Electrónico" value={email} onChange={e=>setEmail(e.target.value)} required />

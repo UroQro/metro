@@ -39,4 +39,5 @@ export const downloadCSV = (data, headers, filename) => {
   }
 };
 
-export const SERVICES = ["URO", "CARDIO", "MI", "CG", "TYO", "GYO", "PEDIA", "MAXILO", "GERIA", "PALIA", "UCIQX", "UCIA", "OTROS"];
+export const SERVICES = ["HOSP", "CARDIO", "MI", "CG", "TYO", "GYO", "PEDIA", "MAXILO", "GERIA", "PALIA", "UCIQX", "UCIA", "OTROS"];
+export const CATEGORIES = ["Onco", "CPO", "Litiasis", "Reconstructiva", "Infeccioso", "Trauma", "Otros"];

@@ -1,15 +1,15 @@
 import React, { useState } from 'react';
 import { db } from '../firebase';
 import { collection, addDoc, doc, updateDoc } from 'firebase/firestore';
-import { SERVICES, getLocalISODate } from '../utils';
+import { SERVICES, CATEGORIES, getLocalISODate } from '../utils';
 import { X } from 'lucide-react';
 
 export default function PatientFormModal({ onClose, mode, initialData, context }) {
   const [form, setForm] = useState(initialData || {
-      name: '', dob: '', phone: '', bedNumber: '', service: 'URO', 
+      name: '', dob: '', phone: '', bedNumber: '', service: 'HOSP', category: '',
       diagnosis: '', surgery: '', meds: '', allergies: '',
       reentry: false, status: context === 'prog' ? 'pre_admission' : 'active',
-      admissionDate: getLocalISODate(), scheduledDate: '', isUrgent: false,
+      admissionDate: getLocalISODate(), scheduledDate: '', surgeryTime: '00:00', isUrgent: false,
       antecedents: { dm: false, has: false, hipo: false, onco: false, other: '' },
       checklist: []
   });
@@ -51,7 +51,18 @@ export default function PatientFormModal({ onClose, mode, initialData, context }
                               {SERVICES.map(s=><option key={s}>{s}</option>)}
                           </select>
                       </div>
-                      <div className="flex items-center gap-2 pt-5 px-2">
+                      <div>
+                          <label className={labelClass}>Categoría Padecimiento</label>
+                          <select className={inputClass} value={form.category} onChange={e=>setForm({...form, category:e.target.value})}>
+                              <option value="">Seleccionar...</option>
+                              {CATEGORIES.map(c=><option key={c}>{c}</option>)}
+                          </select>
+                      </div>
+                  </div>
+                  
+                  <div className="flex items-center justify-between px-1">
+                       <div className="flex-1"><label className={labelClass}>Fecha Ingreso</label><input type="date" className={inputClass} value={form.admissionDate} onChange={e=>setForm({...form, admissionDate:e.target.value})}/></div>
+                       <div className="flex items-center gap-2 pt-5 px-4">
                           <input type="checkbox" className="w-5 h-5" checked={form.reentry} onChange={e=>setForm({...form, reentry:e.target.checked})}/>
                           <span className="font-bold text-xs">ES REINGRESO</span>
                       </div>
@@ -61,7 +72,10 @@ export default function PatientFormModal({ onClose, mode, initialData, context }
                       <label className={labelClass}>Antecedentes</label>
                       <div className="grid grid-cols-4 gap-2 mb-2">
                           {['dm','has','hipo','onco'].map(k => (
-                              <label key={k} className="flex items-center gap-1 text-xs font-bold uppercase"><input type="checkbox" checked={form.antecedents?.[k]||false} onChange={()=>toggleAnt(k)}/> {k}</label>
+                              <label key={k} className="flex items-center gap-1 text-xs font-bold uppercase">
+                                <input type="checkbox" checked={form.antecedents?.[k]||false} onChange={()=>toggleAnt(k)}/> 
+                                {k==='hipo'?'HIPOTIROIDISMO':k}
+                              </label>
                           ))}
                       </div>
                       <input className={`${inputClass} mb-2 text-xs`} placeholder="Otros antecedentes..." value={form.antecedents?.other||''} onChange={e=>setForm({...form, antecedents:{...form.antecedents, other:e.target.value}})} />
@@ -73,7 +87,10 @@ export default function PatientFormModal({ onClose, mode, initialData, context }
                   <div><label className={labelClass}>Medicamentos Habituales</label><input className={inputClass} value={form.meds} onChange={e=>setForm({...form, meds:e.target.value})} /></div>
 
                   {context === 'prog' && (
-                      <div><label className={labelClass}>Fecha Programada (Vacío = Urgencia)</label><input type="date" className={inputClass} value={form.scheduledDate} onChange={e=>setForm({...form, scheduledDate:e.target.value})} /></div>
+                      <div className="flex gap-2">
+                          <div className="flex-1"><label className={labelClass}>Fecha (Vacío=Urgencia)</label><input type="date" className={inputClass} value={form.scheduledDate} onChange={e=>setForm({...form, scheduledDate:e.target.value})} /></div>
+                          <div className="w-1/3"><label className={labelClass}>Hora</label><input type="time" className={inputClass} value={form.surgeryTime} onChange={e=>setForm({...form, surgeryTime:e.target.value})} /></div>
+                      </div>
                   )}
 
                   <button className="w-full bg-blue-600 text-white font-black py-3 rounded-lg shadow-lg uppercase mt-4">Guardar</button>
