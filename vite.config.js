@@ -5,11 +5,12 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       manifest: {
-        name: 'UroMETRO',
+        name: 'UroMETRO Manager',
         short_name: 'UroMETRO',
         theme_color: '#0f172a',
-        background_color: '#ffffff',
+        background_color: '#f8fafc',
         display: 'standalone',
+        orientation: 'portrait',
         icons: [{ src: 'icon.svg', sizes: 'any', type: 'image/svg+xml' }]
       }
     })
