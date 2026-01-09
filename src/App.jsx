@@ -8,6 +8,7 @@ import Programming from './components/Programming';
 import Discharges from './components/Discharges';
 import { LogOut, ClipboardList, CalendarClock, Archive } from 'lucide-react';
 import { getLocalISODate } from './utils';
+import packageJson from '../package.json'; // Para leer versión
 
 export default function App() {
   const [user, setUser] = useState(null);
@@ -64,11 +65,14 @@ export default function App() {
             <NavBtn active={view==='discharges'} onClick={()=>setView('discharges')} label="Egresos" icon={<Archive size={18}/>} />
         </nav>
       </header>
-      <main className="flex-1 p-2 max-w-5xl mx-auto w-full pb-20">
+      <main className="flex-1 p-2 max-w-5xl mx-auto w-full pb-10">
         {view === 'census' && <Census user={user} />}
         {view === 'programming' && <Programming user={user} />}
         {view === 'discharges' && <Discharges />}
       </main>
+      <footer className="text-center py-2 text-[10px] text-slate-400 font-mono bg-slate-100">
+        v7.0.0
+      </footer>
     </div>
   );
 }

@@ -69,9 +69,32 @@ export default function PatientDetail({ patient: initialP, onClose }) {
       setNewTask('');
   };
 
+  // COPIADO INTELIGENTE: SIN * Y SIN CAMPOS VACIOS
   const copyVisita = (n) => {
-      const t = `*EVOLUCIÓN UROLOGÍA*\n*S:* ${n.subj||'-'}\n*SV:* TA:${n.ta} FC:${n.fc} T:${n.temp}\n*GU:* ${n.gu}ml | *DREN:* ${n.dren||'-'}\n*LABS:* Hb:${n.hb} Leu:${n.leu} Plt:${n.plt} Glu:${n.glu} Cr:${n.cr}\n*PLAN:* ${n.plan}`;
-      navigator.clipboard.writeText(t); alert("Copiado");
+      let t = `EVOLUCIÓN UROLOGÍA\n`;
+      if(n.subj) t += `S: ${n.subj}\n`;
+      
+      let sv = [];
+      if(n.ta) sv.push(`TA:${n.ta}`);
+      if(n.fc) sv.push(`FC:${n.fc}`);
+      if(n.temp) sv.push(`T:${n.temp}`);
+      if(sv.length) t += `SV: ${sv.join(' ')}\n`;
+
+      let guLines = [];
+      if(n.gu) guLines.push(`GU:${n.gu}ml`);
+      if(n.dren) guLines.push(`DREN:${n.dren}`);
+      if(guLines.length) t += `${guLines.join(' | ')}\n`;
+
+      let labs = [];
+      const keys = ['hb','htc','leu','plt','glu','bun','cr','na','k','cl'];
+      const labels = {hb:'Hb',htc:'Htc',leu:'Leu',plt:'Plt',glu:'Glu',bun:'BUN',cr:'Cr',na:'Na',k:'K',cl:'Cl'};
+      keys.forEach(k => { if(n[k]) labs.push(`${labels[k]}:${n[k]}`); });
+      if(labs.length) t += `LABS: ${labs.join(' ')}\n`;
+
+      if(n.plan) t += `PLAN: ${n.plan}`;
+      
+      navigator.clipboard.writeText(t); 
+      alert("Copiado limpio");
   };
 
   const discharge = async () => {
