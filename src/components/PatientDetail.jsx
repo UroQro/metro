@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { db, auth } from '../firebase';
 import { doc, updateDoc, arrayUnion, onSnapshot } from 'firebase/firestore';
-import { calculateAge, calculateDays, getLocalISODate, SERVICES } from '../utils';
-import { ArrowLeft, Save, Plus, Trash2, Edit, Copy, CheckSquare, Square, LogOut, Syringe } from 'lucide-react';
+import { calculateAge, calculateDays, getLocalISODate } from '../utils';
+import { ArrowLeft, Save, Edit, CheckSquare, LogOut } from 'lucide-react';
 import PatientFormModal from './PatientFormModal';
 
-// COMPONENTE EXTERNO PARA EVITAR PERDIDA DE FOCO
 const NoteInput = ({ label, k, form, setForm, ph = "..." }) => (
   <div className="flex flex-col">
     <label className="text-[9px] font-bold text-slate-400 uppercase leading-none mb-1">{label}</label>
@@ -101,26 +100,25 @@ export default function PatientDetail({ patient: initialP, onClose }) {
                <div className="grid grid-cols-2 gap-4 text-xs mb-3">
                    <div><span className="font-bold text-slate-400 block text-[10px]">DIAGNÓSTICO</span>{p.diagnosis}</div>
                    <div><span className="font-bold text-slate-400 block text-[10px]">CIRUGÍA</span>{p.surgery}</div>
+                   <div><span className="font-bold text-slate-400 block text-[10px]">EXPEDIENTE</span>{p.fileNumber}</div>
                    <div><span className="font-bold text-slate-400 block text-[10px]">CATEGORÍA</span>{p.category}</div>
-                   <div><span className="font-bold text-slate-400 block text-[10px]">FECHA INGRESO</span>{p.admissionDate}</div>
                    <div><span className="font-bold text-slate-400 block text-[10px]">ANTECEDENTES</span>
                        <div className="flex flex-wrap gap-1 mt-1">
                            {p.antecedents?.dm && <span className="px-1 bg-red-100 text-red-800 rounded font-bold">DM</span>}
                            {p.antecedents?.has && <span className="px-1 bg-orange-100 text-orange-800 rounded font-bold">HAS</span>}
-                           {p.antecedents?.hipo && <span className="px-1 bg-blue-100 text-blue-800 rounded font-bold">HIPO</span>}
+                           {p.antecedents?.hipo && <span className="px-1 bg-blue-100 text-blue-800 rounded font-bold">HIPOTIROIDISMO</span>}
                            {p.antecedents?.onco && <span className="px-1 bg-purple-100 text-purple-800 rounded font-bold">ONCO</span>}
                        </div>
                        <p className="mt-1">{p.antecedents?.other}</p>
                    </div>
                    <div><span className="font-bold text-slate-400 block text-[10px]">ALERGIAS</span><span className="text-red-600 font-bold">{p.allergies}</span></div>
-                   <div className="col-span-2"><span className="font-bold text-slate-400 block text-[10px]">MEDICAMENTOS HABITUALES</span>{p.meds}</div>
                </div>
                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
                    <h3 className="text-[10px] font-black text-yellow-600 uppercase mb-2">Checklist Pendientes</h3>
                    {p.checklist?.map((t,i)=>(
                        <div key={i} className="flex gap-2 items-center mb-1"><input type="checkbox" checked={t.done} onChange={()=>toggleCheck(i)}/><span className={`text-sm ${t.done?'line-through text-slate-400':''}`}>{t.text}</span></div>
                    ))}
-                   <div className="flex gap-2 mt-2"><input className="flex-1 text-xs p-1.5 rounded border" placeholder="Nuevo pendiente..." value={newTask} onChange={e=>setNewTask(e.target.value)}/><button onClick={addTask} className="bg-yellow-500 text-white p-1.5 rounded"><Plus size={16}/></button></div>
+                   <div className="flex gap-2 mt-2"><input className="flex-1 text-xs p-1.5 rounded border" placeholder="Nuevo pendiente..." value={newTask} onChange={e=>setNewTask(e.target.value)}/><button onClick={addTask} className="bg-yellow-500 text-white p-1.5 rounded">+</button></div>
                </div>
            </div>
 
@@ -172,7 +170,7 @@ export default function PatientDetail({ patient: initialP, onClose }) {
                    {noteType === 'inter' && <div className="space-y-2">
                        <label className="text-xs font-bold block">Servicio Consultante</label>
                        <select className="w-full p-2 border rounded" value={note.service||''} onChange={e=>setNote({...note, service:e.target.value})}>
-                           <option value="">Seleccionar...</option>{SERVICES.map(s=><option key={s}>{s}</option>)}
+                           <option value="">Seleccionar...</option>{['HOSP','CARDIO','MI','CG','TYO','GYO','PEDIA','MAXILO','GERIA','PALIA','UCIQX','UCIA','OTROS'].map(s=><option key={s}>{s}</option>)}
                        </select>
                        <textarea className="w-full p-2 border rounded text-xs" rows="4" placeholder="Resumen de interconsulta..." value={note.text||''} onChange={e=>setNote({...note, text:e.target.value})}/>
                    </div>}

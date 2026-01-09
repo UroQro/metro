@@ -36,6 +36,7 @@ export default function Census() {
           } catch(e) {}
       }
       return [
+          p.fileNumber || '000000',
           p.admissionDate || '',
           p.bedNumber || '-', 
           p.service || '-', 
@@ -52,7 +53,7 @@ export default function Census() {
       ];
   });
 
-  const headers = ["Fecha Ingreso","Cama","Servicio","Categoria","Nombre","Reingreso","Dias","Dx","Cx","Ant","Meds","Labs","Uro"];
+  const headers = ["Expediente","Fecha Ingreso","Cama","Servicio","Categoria","Nombre","Reingreso","Dias","Dx","Cx","Ant","Meds","Labs","Uro"];
 
   const handleExport = () => {
       if (patients.length === 0) return alert("No hay pacientes para exportar");
@@ -63,11 +64,9 @@ export default function Census() {
       const dateStr = prompt("Ingrese la fecha del censo a reconstruir (YYYY-MM-DD):");
       if (!dateStr) return;
       
-      // Get all patients ever
       const snap = await getDocs(collection(db, "patients"));
       const allP = snap.docs.map(d => d.data());
       
-      // Filter logic: In census if Admission <= Date AND (Active OR Discharge >= Date)
       const historical = allP.filter(p => {
           if (!p.admissionDate) return false;
           const entered = p.admissionDate <= dateStr;
@@ -123,7 +122,7 @@ export default function Census() {
                               {p.checklist?.some(t=>!t.done) && <AlertCircle size={16} className="text-yellow-600 fill-yellow-100"/>}
                           </h3>
                           <div className="text-xs font-medium text-slate-600 mt-1 space-y-0.5">
-                              <p>{calculateAge(p.dob)} años • {p.diagnosis}</p>
+                              <p>{p.fileNumber||'000000'} • {calculateAge(p.dob)} años • {p.diagnosis}</p>
                               {p.surgery && <p className="text-blue-600 font-bold">Cx: {p.surgery}</p>}
                               <p className="opacity-70">Estancia: {calculateDays(p.admissionDate)} días</p>
                           </div>

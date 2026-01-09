@@ -6,7 +6,7 @@ import { X } from 'lucide-react';
 
 export default function PatientFormModal({ onClose, mode, initialData, context }) {
   const [form, setForm] = useState(initialData || {
-      name: '', dob: '', phone: '', bedNumber: '', service: 'HOSP', category: '',
+      name: '', fileNumber: '', dob: '', phone: '', bedNumber: '', service: 'HOSP', category: '',
       diagnosis: '', surgery: '', meds: '', allergies: '',
       reentry: false, status: context === 'prog' ? 'pre_admission' : 'active',
       admissionDate: getLocalISODate(), scheduledDate: '', surgeryTime: '00:00', isUrgent: false,
@@ -17,8 +17,9 @@ export default function PatientFormModal({ onClose, mode, initialData, context }
   const handleSubmit = async (e) => {
       e.preventDefault();
       try {
-          if (mode === 'create') await addDoc(collection(db, "patients"), form);
-          else await updateDoc(doc(db, "patients", form.id), form);
+          const finalForm = { ...form, fileNumber: form.fileNumber || '000000' };
+          if (mode === 'create') await addDoc(collection(db, "patients"), finalForm);
+          else await updateDoc(doc(db, "patients", form.id), finalForm);
           onClose();
       } catch (err) { alert(err.message); }
   };
@@ -36,12 +37,12 @@ export default function PatientFormModal({ onClose, mode, initialData, context }
               <form onSubmit={handleSubmit} className="space-y-3">
                   <div className="grid grid-cols-[1fr_80px] gap-2">
                       <div><label className={labelClass}>Nombre Completo</label><input required className={inputClass} value={form.name} onChange={e=>setForm({...form, name:e.target.value.toUpperCase()})}/></div>
-                      <div><label className={labelClass}>Cama</label><input required className={inputClass} value={form.bedNumber} placeholder="304/AMB" onChange={e=>setForm({...form, bedNumber:e.target.value.toUpperCase()})}/></div>
+                      <div><label className={labelClass}>Expediente</label><input className={inputClass} value={form.fileNumber} placeholder="000000" onChange={e=>setForm({...form, fileNumber:e.target.value})}/></div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-2">
                       <div><label className={labelClass}>Fecha Nacimiento</label><input type="date" required className={inputClass} value={form.dob} onChange={e=>setForm({...form, dob:e.target.value})}/></div>
-                      <div><label className={labelClass}>Teléfono</label><input type="tel" className={inputClass} value={form.phone} onChange={e=>setForm({...form, phone:e.target.value})}/></div>
+                      <div><label className={labelClass}>Cama</label><input required className={inputClass} value={form.bedNumber} placeholder="304/AMB" onChange={e=>setForm({...form, bedNumber:e.target.value.toUpperCase()})}/></div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-2">
@@ -52,7 +53,7 @@ export default function PatientFormModal({ onClose, mode, initialData, context }
                           </select>
                       </div>
                       <div>
-                          <label className={labelClass}>Categoría Padecimiento</label>
+                          <label className={labelClass}>Categoría</label>
                           <select className={inputClass} value={form.category} onChange={e=>setForm({...form, category:e.target.value})}>
                               <option value="">Seleccionar...</option>
                               {CATEGORIES.map(c=><option key={c}>{c}</option>)}
@@ -84,11 +85,15 @@ export default function PatientFormModal({ onClose, mode, initialData, context }
 
                   <div><label className={labelClass}>Diagnóstico</label><textarea rows="2" className={inputClass} value={form.diagnosis} onChange={e=>setForm({...form, diagnosis:e.target.value})} /></div>
                   <div><label className={labelClass}>Cirugía Realizada / A Realizar</label><input className={inputClass} value={form.surgery} onChange={e=>setForm({...form, surgery:e.target.value})} /></div>
-                  <div><label className={labelClass}>Medicamentos Habituales</label><input className={inputClass} value={form.meds} onChange={e=>setForm({...form, meds:e.target.value})} /></div>
+                  
+                  <div className="grid grid-cols-2 gap-2">
+                      <div><label className={labelClass}>Medicamentos</label><input className={inputClass} value={form.meds} onChange={e=>setForm({...form, meds:e.target.value})} /></div>
+                      <div><label className={labelClass}>Teléfono</label><input type="tel" className={inputClass} value={form.phone} onChange={e=>setForm({...form, phone:e.target.value})}/></div>
+                  </div>
 
-                  {context === 'prog' && (
-                      <div className="flex gap-2">
-                          <div className="flex-1"><label className={labelClass}>Fecha (Vacío=Urgencia)</label><input type="date" className={inputClass} value={form.scheduledDate} onChange={e=>setForm({...form, scheduledDate:e.target.value})} /></div>
+                  {(context === 'prog' || mode === 'edit') && (
+                      <div className="flex gap-2 bg-blue-50 p-2 rounded border border-blue-100 mt-2">
+                          <div className="flex-1"><label className={labelClass}>Fecha Qx (Vacío=Urgencia)</label><input type="date" className={inputClass} value={form.scheduledDate} onChange={e=>setForm({...form, scheduledDate:e.target.value})} /></div>
                           <div className="w-1/3"><label className={labelClass}>Hora</label><input type="time" className={inputClass} value={form.surgeryTime} onChange={e=>setForm({...form, surgeryTime:e.target.value})} /></div>
                       </div>
                   )}
