@@ -61,15 +61,16 @@ export default function PatientFormModal({ onClose, mode, initialData, context }
                       <label className={labelClass}>Antecedentes</label>
                       <div className="grid grid-cols-4 gap-2 mb-2">
                           {['dm','has','hipo','onco'].map(k => (
-                              <label key={k} className="flex items-center gap-1 text-xs font-bold uppercase"><input type="checkbox" checked={form.antecedents[k]} onChange={()=>toggleAnt(k)}/> {k}</label>
+                              <label key={k} className="flex items-center gap-1 text-xs font-bold uppercase"><input type="checkbox" checked={form.antecedents?.[k]||false} onChange={()=>toggleAnt(k)}/> {k}</label>
                           ))}
                       </div>
-                      <input className={`${inputClass} mb-2 text-xs`} placeholder="Otros antecedentes..." value={form.antecedents.other} onChange={e=>setForm({...form, antecedents:{...form.antecedents, other:e.target.value}})} />
+                      <input className={`${inputClass} mb-2 text-xs`} placeholder="Otros antecedentes..." value={form.antecedents?.other||''} onChange={e=>setForm({...form, antecedents:{...form.antecedents, other:e.target.value}})} />
                       <input className={`${inputClass} text-xs border-red-200 bg-red-50`} placeholder="ALERGIAS" value={form.allergies} onChange={e=>setForm({...form, allergies:e.target.value})} />
                   </div>
 
                   <div><label className={labelClass}>Diagnóstico</label><textarea rows="2" className={inputClass} value={form.diagnosis} onChange={e=>setForm({...form, diagnosis:e.target.value})} /></div>
                   <div><label className={labelClass}>Cirugía Realizada / A Realizar</label><input className={inputClass} value={form.surgery} onChange={e=>setForm({...form, surgery:e.target.value})} /></div>
+                  <div><label className={labelClass}>Medicamentos Habituales</label><input className={inputClass} value={form.meds} onChange={e=>setForm({...form, meds:e.target.value})} /></div>
 
                   {context === 'prog' && (
                       <div><label className={labelClass}>Fecha Programada (Vacío = Urgencia)</label><input type="date" className={inputClass} value={form.scheduledDate} onChange={e=>setForm({...form, scheduledDate:e.target.value})} /></div>

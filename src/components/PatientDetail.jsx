@@ -7,8 +7,8 @@ import PatientFormModal from './PatientFormModal';
 
 // COMPONENTE EXTERNO PARA EVITAR PERDIDA DE FOCO
 const NoteInput = ({ label, k, form, setForm, ph = "..." }) => (
-  <div>
-    <label className="text-[9px] font-bold text-slate-400 uppercase">{label}</label>
+  <div className="flex flex-col">
+    <label className="text-[9px] font-bold text-slate-400 uppercase leading-none mb-1">{label}</label>
     <input 
         className="w-full border rounded p-1.5 text-xs bg-slate-50 focus:bg-white focus:ring-2 ring-blue-200 outline-none transition" 
         placeholder={ph} 
@@ -25,8 +25,7 @@ export default function PatientDetail({ patient: initialP, onClose }) {
   // NOTE STATE
   const [noteType, setNoteType] = useState('visita');
   const [note, setNote] = useState({});
-  const [editingNoteId, setEditingNoteId] = useState(null); // ID de nota siendo editada
-  
+  const [editingNoteId, setEditingNoteId] = useState(null); 
   const [newTask, setNewTask] = useState('');
 
   useEffect(() => {
@@ -37,7 +36,6 @@ export default function PatientDetail({ patient: initialP, onClose }) {
   }, [initialP.id]);
 
   useEffect(() => {
-      // Limpiar formulario al cambiar de tipo
       if(!editingNoteId) setNote({});
   }, [noteType]);
 
@@ -45,7 +43,7 @@ export default function PatientDetail({ patient: initialP, onClose }) {
      if(Object.keys(note).length === 0) return alert("La nota está vacía");
      
      if (editingNoteId) {
-         // EDITAR NOTA EXISTENTE
+         // ACTUALIZAR NOTA
          const updatedNotes = p.notes.map(n => 
             n.id === editingNoteId ? { ...n, content: note, type: noteType } : n
          );
@@ -53,7 +51,7 @@ export default function PatientDetail({ patient: initialP, onClose }) {
          setEditingNoteId(null);
          alert("Nota Actualizada");
      } else {
-         // CREAR NUEVA NOTA
+         // NUEVA NOTA
          const newNote = {
              id: Date.now(), type: noteType, 
              author: auth.currentUser.displayName, 
@@ -63,17 +61,15 @@ export default function PatientDetail({ patient: initialP, onClose }) {
          await updateDoc(doc(db, "patients", p.id), { notes: arrayUnion(newNote) });
      }
 
-     // Actualizar campos rápidos para el CSV
+     // Helpers para CSV y Exportación
      if(noteType === 'labs') await updateDoc(doc(db, "patients", p.id), { lastLabs: JSON.stringify(note) });
      if(noteType === 'uro') await updateDoc(doc(db, "patients", p.id), { lastUro: note.res === '+' ? `${note.germ} (${note.sens})` : 'Negativo' });
      if(noteType === 'visita' && !editingNoteId) {
-         // Guardar labs rapidos de la visita también
          const miniLabs = { hb: note.hb, leu: note.leu, cr: note.cr };
          await updateDoc(doc(db, "patients", p.id), { lastLabs: JSON.stringify(miniLabs) });
      }
      
      setNote({});
-     if(!editingNoteId) alert("Nota Guardada");
   };
 
   const startEditNote = (n) => {
@@ -95,7 +91,7 @@ export default function PatientDetail({ patient: initialP, onClose }) {
   };
 
   const copyVisita = (n) => {
-      const t = `*EVOLUCIÓN UROLOGÍA*\n*S:* ${n.subj||'-'}\n*SV:* TA:${n.ta} FC:${n.fc} T:${n.temp}\n*GU:* ${n.gu}ml | *DREN:* ${n.dren||'-'}\n*LABS:* Hb:${n.hb} Leu:${n.leu} Plt:${n.plt} Cr:${n.cr}\n*PLAN:* ${n.plan}`;
+      const t = `*EVOLUCIÓN UROLOGÍA*\n*S:* ${n.subj||'-'}\n*SV:* TA:${n.ta} FC:${n.fc} T:${n.temp}\n*GU:* ${n.gu}ml | *DREN:* ${n.dren||'-'}\n*LABS:* Hb:${n.hb} Leu:${n.leu} Plt:${n.plt} Glu:${n.glu} Cr:${n.cr}\n*PLAN:* ${n.plan}`;
       navigator.clipboard.writeText(t); alert("Copiado");
   };
 
@@ -115,7 +111,7 @@ export default function PatientDetail({ patient: initialP, onClose }) {
            </div>
            <div className="flex gap-2">
                <button onClick={discharge} className="bg-red-50 text-red-500 p-2 rounded-lg text-xs font-bold flex items-center gap-1 border border-red-100"><LogOut size={14}/> EGRESAR</button>
-               <button onClick={()=>setShowEdit(true)} className="bg-blue-50 text-blue-500 p-2 rounded-lg border border-blue-100"><Edit size={16}/></button>
+               <button onClick={()=>setShowEdit(true)} className="bg-blue-50 text-blue-500 p-2 rounded-lg border border-blue-100 flex items-center gap-1"><Edit size={16}/> EDITAR DATOS</button>
            </div>
        </div>
 
@@ -255,7 +251,7 @@ export default function PatientDetail({ patient: initialP, onClose }) {
                            <span className="bg-slate-100 px-2 py-0.5 rounded text-[10px] font-black uppercase text-slate-500">{n.type}</span>
                            <div className="flex items-center gap-3">
                                <span className="text-[10px] text-slate-400">{n.date.slice(0,10)} • {n.author}</span>
-                               <button onClick={()=>startEditNote(n)} className="text-blue-400 hover:text-blue-600"><Edit size={14}/></button>
+                               <button onClick={()=>startEditNote(n)} className="text-blue-400 hover:text-blue-600 p-1 bg-blue-50 rounded"><Edit size={14}/></button>
                            </div>
                        </div>
                        <div className="text-sm text-slate-700">

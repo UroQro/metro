@@ -26,17 +26,16 @@ export const downloadCSV = (data, headers, filename) => {
     ].join("\n");
     
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement("a");
     const url = URL.createObjectURL(blob);
-    link.setAttribute("href", url);
-    link.setAttribute("download", filename);
-    link.style.visibility = 'hidden';
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = filename;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
   } catch (e) {
-    console.error("Error exportando CSV", e);
-    alert("Error al generar CSV: " + e.message);
+    console.error(e);
+    alert("Error generando CSV: " + e.message);
   }
 };
 

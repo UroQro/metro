@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { db } from '../firebase';
 import { collection, onSnapshot, query, where, updateDoc, doc } from 'firebase/firestore';
-import { calculateAge, calculateDays, downloadCSV } from '../utils';
+import { calculateAge, calculateDays, downloadCSV, getLocalISODate } from '../utils';
 import { Search, Plus, Download, AlertCircle, CheckSquare, Square, LogOut, CalendarClock, Briefcase } from 'lucide-react';
 import PatientFormModal from './PatientFormModal';
 import PatientDetail from './PatientDetail';
@@ -31,7 +31,6 @@ export default function Census() {
       if (patients.length === 0) return alert("No hay pacientes para exportar");
       
       const data = patients.map(p => {
-          // Parse last labs nicely if they exist
           let labsText = '';
           if(p.lastLabs) {
               try {
@@ -39,7 +38,6 @@ export default function Census() {
                   labsText = `Hb:${l.hb} Leu:${l.leu} Cr:${l.cr}`;
               } catch(e) {}
           }
-
           return [
               getLocalISODate(), 
               p.bedNumber || '-', 
